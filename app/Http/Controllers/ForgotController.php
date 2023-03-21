@@ -23,9 +23,11 @@ class ForgotController extends Controller
         //$consulta = User::where ('email', $email) -> first();
 
         $consulta = User::where('email', $email)
-                    ->select('users.password') -> first();
+                    ->value('password');
 
-        return response()->json($consulta);
+        $pass_real = openssl_decrypt($consulta, "AES-128-ECB", "someone");
+
+        return response()->json($pass_real);
 
     }
 }
