@@ -8,28 +8,37 @@ use App\Notifications\SignupActivate;
 
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
+use App\Util\AgecoldexCrypter;
 
 
 class AuthController extends Controller
 {
-    public function encrypt($key, $stringToEncrypt)
-    {
-        //$GStrError = '';
-        $password = $key;
-        $cipher = 'des-ede3';
-        $mode = 'ECB';
-        try {
-            $key = md5($password, true);
-            //$iv = null;
-            $encrypted = openssl_encrypt($stringToEncrypt, $cipher, $key, OPENSSL_RAW_DATA | OPENSSL_NO_PADDING);
-            $encrypted = base64_encode($encrypted);
-        } catch (\Exception $e) {
-            //$encrypted = '';
-            //$GStrError = "[Encrypt]: No se puede Encryptar." . $e->getMessage();
-        }
-        return $encrypted;
-    }
+    // public function encrypt($key, $stringToEncrypt)
+    // {
+    //     //$GStrError = '';
+    //     $password = $key;
+    //     $cipher = 'des-ede3';
+    //     $mode = 'ECB';
+    //     try {
+    //         $key = md5($password, true);
+    //         //$iv = null;
+    //         $encrypted = openssl_encrypt($stringToEncrypt, $cipher, $key, OPENSSL_RAW_DATA | OPENSSL_NO_PADDING);
+    //         $encrypted = base64_encode($encrypted);
+    //     } catch (\Exception $e) {
+    //         //$encrypted = '';
+    //         //$GStrError = "[Encrypt]: No se puede Encryptar." . $e->getMessage();
+    //     }
+    //     return $encrypted;
+    // }
 
+    // public function Encrypt( $data, $hash ) {
+    //     $key        = md5($hash, true);
+    //     $key        .= substr($key, 0, 8);
+    //     $encData = openssl_encrypt($data, 'DES-EDE3', $key, OPENSSL_RAW_DATA);
+    //     $encData = base64_encode($encData);
+
+    //     return $encData;
+    // }
 
     
     public function signup(Request $request)
@@ -42,15 +51,16 @@ class AuthController extends Controller
         $user = new User([
             'name'              => $request->name,
             'email'             => $request->email,
-            //'password'          =>bycrypt($request->password),
+            //'password'          => bcrypt($request->password),
             //'password'          => openssl_encrypt ( $request->password , "AES-128-ECB" , "someone"),
-            'password'          => $this->encrypt($request->password, "web_novo_agesoft"),
+            //'password'          => $this->encrypt($request->password, 'web_novo_agesoft'),
+            'password'          => AgecoldexCrypter::FastEncrypt($request->password),
             'activation_token'  => str_random(60),
         ]);
         $user->save();
         //$user->notify(new SignupActivate($user));
         
-        return response()->json(['message' => 'Usuario creado existosamente!'], 201);
+        return response()->json(['message' => 'Usuario creado existosamente!', $request->password], 201);
     }
 
 public function login(Request $request)
